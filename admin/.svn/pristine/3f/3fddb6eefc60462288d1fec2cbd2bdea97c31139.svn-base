@@ -1,0 +1,222 @@
+<%@ page language="java" contentType="text/html;charset=utf-8"
+	pageEncoding="utf-8"%>
+<ul class="am-list admin-sidebar-list">
+	<li class="admin-parent"><a class="am-cf" data-am-collapse="{target: '#collapse-nav'}">
+	<span class="am-icon-file"></span> 页面模块 
+	<span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+		<ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav">
+			<li>
+				<a href="/admin/member" class="am-cf">
+					<span class="am-icon-check"></span> 用户管理
+				</a>
+			</li>
+			<li>
+				<a href="/admin/course/offline">
+				<span class="am-icon-puzzle-piece"></span> 线下课程管理
+				</a>
+			</li>
+			<li>
+				<a href="/admin/course/onlineNew">
+				<span class="am-icon-puzzle-piece"></span> 线上课程管理
+				</a>
+			</li>
+			<li>
+				<a href="/admin/course/online">
+					<span class="am-icon-puzzle-piece"></span> 录音课程管理
+				</a>
+			</li>
+			<li>
+				<a href="/admin/order/online" class="am-cf">
+					<span class="am-icon-check"></span> 录音课程订单
+				</a>
+			</li>
+			<li>
+				<a href="/admin/order" class="am-cf">
+					<span class="am-icon-check"></span> Web线下课程订单
+				</a>
+			</li>
+			<li>
+				<a href="/admin/order/onlineNew" class="am-cf">
+					<span class="am-icon-check"></span> Web线上课程订单
+				</a>
+			</li>
+			<li>
+				<a href="/admin/crowdfunding/crowd" class="am-cf">
+					<span class="am-icon-check"></span> 众筹列表
+				</a>
+			</li>
+			<!-- <li>
+				<a href="/admin/crowdfunding" class="am-cf">
+					<span class="am-icon-check"></span> 众筹过期
+				</a>
+			</li> -->
+			<li>
+				<a href="/admin/push"  class="am-cf">
+					<span class="am-icon-puzzle-piece"></span> 推送管理
+				</a>
+			</li>
+			
+			<li>
+				<a href="/admin/image" class="am-cf">
+					<span class="am-icon-check"></span> 图片列表
+				</a>
+			</li>
+			
+			<li>
+				<a href="/admin/info" class="am-cf">
+					<span class="am-icon-check"></span> 短信列表
+				</a>
+			</li>
+			<li> 
+				<a href="/admin/feedback" class="am-cf">
+					<span class="am-icon-check"></span> 意见反馈
+				</a>
+			</li>
+			<li> 
+				<a href="/admin/ordercount" class="am-cf">
+					<span class="am-icon-check"></span> 订单统计
+				</a>
+			</li>
+		</ul></li>
+		<li class="admin-parent"><a class="am-cf" data-am-collapse="{target: '#collapse-nav5'}">
+			<span class="am-icon-file"></span> 文章模块 
+			<span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+				<ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav5">
+					<li>
+						<a href="/admin/article" class="am-cf">
+							<span class="am-icon-check"></span> 文章管理(APP)
+						</a>
+					</li>
+					<li>
+						<a href="/admin/article?type=1" class="am-cf">
+							<span class="am-icon-check"></span> 文章管理(网站)
+						</a>
+					</li>
+					<li>
+						<a href="/admin/type" class="am-cf">
+							<span class="am-icon-check"></span> 文章类型列表
+						</a>
+					</li>
+				</ul>
+		</li>
+		<li class="admin-parent"><a class="am-cf" data-am-collapse="{target: '#collapse-nav4'}">
+			<span class="am-icon-file"></span> 招聘模块 
+			<span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+				<ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav4">
+					<li>
+						<a href="/admin/job/jobtype" class="am-cf">
+							<span class="am-icon-check"></span> 招聘类别列表
+						</a>
+					</li>
+					<li>
+						<a href="/admin/job" class="am-cf">
+							<span class="am-icon-check"></span> 招聘信息列表
+						</a>
+					</li>
+				</ul>
+		</li>
+		
+		<li class="admin-parent"><a class="am-cf" data-am-collapse="{target: '#collapse-nav2'}">
+			<span class="am-icon-file"></span> 老师模块 
+			<span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+				<ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav2">
+					<li>
+						<a href="/admin/teacher" class="am-cf">
+							<span class="am-icon-check"></span> 老师列表
+						</a>
+					</li>
+					<li>
+						<a href="/admin/teacher/invite" class="am-cf">
+							<span class="am-icon-check"></span> 邀请列表
+						</a>
+					</li>
+				</ul>
+		</li>
+		
+		<li class="admin-parent"><a class="am-cf" data-am-collapse="{target: '#collapse-nav3'}">
+			<span class="am-icon-file"></span> 旧数据
+			<span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+				<ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav3">
+					<li>
+						<a href="/admin/ticket" class="am-cf">
+							<span class="am-icon-check"></span> 成绩列表
+						</a>
+					</li>
+					<li>
+						<a href="/admin/question" class="am-cf">
+							<span class="am-icon-check"></span> 问题列表
+						</a>
+					</li>
+					<li>
+						<a href="/admin/typeone" class="am-cf">
+							<span class="am-icon-check"></span> 问题一级目录列表
+						</a>
+					</li>
+					<li>
+						<a href="/admin/typetwo" class="am-cf">
+							<span class="am-icon-check"></span> 问题二级目录列表
+						</a>
+					</li>
+				</ul>
+		</li>
+		<li class="admin-parent"><a class="am-cf" data-am-collapse="{target: '#collapse-nav6'}">
+			<span class="am-icon-file"></span> 报表
+			<span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+				<ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav6">
+					<li>
+						<a href="/admin/complex" class="am-cf">
+							<span class="am-icon-check"></span> 复购率报表
+						</a>
+					</li>
+<!-- 					<li> -->
+<!-- 						<a href="/admin/orderreport" class="am-cf"> -->
+<!-- 							<span class="am-icon-check"></span> 当月订单金额日报表 -->
+<!-- 						</a> -->
+<!-- 					</li> -->
+<!-- 					<li> -->
+<!-- 						<a href="/admin/orderreport" class="am-cf"> -->
+<!-- 							<span class="am-icon-check"></span> 订单金额月报表 -->
+<!-- 						</a> -->
+<!-- 					</li> -->
+				</ul>
+		</li>
+		<li class="admin-parent"><a class="am-cf" data-am-collapse="{target: '#collapse-nav7'}">
+			<span class="am-icon-file"></span> 企业模块
+			<span class="am-icon-angle-right am-fr am-margin-right"></span></a>
+				<ul class="am-list am-collapse admin-sidebar-sub am-in" id="collapse-nav7">
+					<li>
+						<a href="/admin/company" class="am-cf">
+							<span class="am-icon-check"></span> 企业管理
+						</a>
+					</li>
+					<li>
+						<a href="/admin/keywords" class="am-cf">
+							<span class="am-icon-check"></span> 搜索关键字管理
+						</a>
+					</li>
+					<li>
+						<a href="/admin/catalog" class="am-cf">
+							<span class="am-icon-check"></span> 课程分类管理
+						</a>
+					</li>
+				</ul>
+		</li>
+</ul>
+
+<div class="am-panel am-panel-default admin-sidebar-panel">
+	<div class="am-panel-bd">
+		<p>
+			<span class="am-icon-bookmark"></span> 公告
+		</p>
+		<p>时光静好，与君语；细水流年，与君同。</p>
+	</div>
+</div>
+
+<div class="am-panel am-panel-default admin-sidebar-panel">
+	<div class="am-panel-bd">
+		<p>
+			<span class="am-icon-tag"></span> wiki
+		</p>
+		<p>Welcome to the Amaze</p>
+	</div>
+</div>

@@ -1,0 +1,310 @@
+package cn.ichazuo.service;
+
+import java.util.List;
+
+import com.jfinal.aop.Before;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+
+import cn.ichazuo.common.Result;
+import cn.ichazuo.common.utils.StringUtils;
+import cn.ichazuo.model.Course;
+import cn.ichazuo.model.OfflineCourse;
+import cn.ichazuo.model.OfflineCourseImage;
+import cn.ichazuo.model.OnlineCourse;
+
+/**
+ * @ClassName: CourseService 
+ * @Description: (企业Service) 
+ * @author LiDongYang
+ * @date 2016-5-6 15:20:44 
+ * @version V1.0
+ */
+public class BusinessService {
+	
+	/**
+	 * @Title: findBusinessList 
+	 * @Description: (查询全部企业) 
+	 * @return
+	 */
+	public List<Record> findBusinessList(){
+		return Db.find("select * from t_business where status = 1");
+	}
+	
+	/**
+	 * @Title: delete 
+	 * @Description: (删除企业) 
+	 * @param id 
+	 */
+	public void delete(Long id){
+		Db.update("update t_business set status = 0 where id = ?", id);
+	}
+	
+	/**
+	 * @Title: deleteEmployee 
+	 * @Description: (删除企业用户) 
+	 * @param id 
+	 */
+	public void deleteEmployee(Long id){
+		Db.update("update t_business_employee set status = 0 where id = ?", id);
+	}
+	
+	/**
+	 * @Title: deleteKeywords 
+	 * @Description: (删除关键字) 
+	 * @param id 
+	 */
+	public void deleteKeywords(Long id){
+		Db.update("update t_business_keywords set status = 0 where id = ?", id);
+	}
+	/**
+	 * @Title: findOfflineCourse 
+	 * @Description: (查询线下课程列表) 
+	 * @param page
+	 * @return
+	 */
+	public List<Record> findBusinessList(int page,String name){
+		String sql = "from t_business as o where o.`status` = 1 ";
+		if(!StringUtils.isNullOrEmpty(name)){
+			sql += " and o.business_name like '%"+name+"%'";
+		}
+		sql += " order by o.id desc";
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.id, o.business_name,o.business_level,o.business_address,o.business_nature,o.business_scale", sql).getList();
+	}
+	
+	/**
+	 * @Title: findBusinessCount 
+	 * @Description: (查询企业数量) 
+	 * @return
+	 */
+	public long findBusinessCount(String name){
+		String sql = "select count(*) from t_business t ";
+		if(!StringUtils.isNullOrEmpty(name)){
+			sql += " and t.business_name like '%"+name+"%'";
+		}
+		return Db.queryLong(sql);
+	}
+	
+	/**
+	 * @Title: find 
+	 * @Description: (根据id查询企业详细信息) 
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public Record find(Long id){
+		return Db.findById("t_business", id);
+	}
+	
+	/**
+	 * @Title: find 
+	 * @Description: (根据id查询企业详细信息) 
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public Record findEmployee(Long id){
+		return Db.findById("t_business_employee", id);
+	}
+	
+	/**
+	 * @Title: findOfflineCourse 
+	 * @Description: (查询线下课程列表) 
+	 * @param page
+	 * @return
+	 */
+	public List<Record> findEmployeeList(int page,int id){
+		String sql = "from t_business_employee as o where o.`status` = 1 ";
+		if(id!=0){
+			sql += " and o.business_id ="+id;
+		}
+		sql += " order by o.id desc";
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.id, o.name,o.sex,o.position,o.mobile,o.mailbox,o.business_id,o.business_name ", sql).getList();
+	}
+	
+	/**
+	 * @Title: findEmployeeCount 
+	 * @Description: (查询企业用户数量) 
+	 * @return
+	 */
+	public long findEmployeeCount(int id){
+		String sql = "select count(*) from t_business_employee as o where o.`status` = 1";
+		if(id!=0){
+			sql += " and o.business_id ="+id;
+		}
+		return Db.queryLong(sql);
+	}
+	//根据名称内容模糊搜索企业
+	public List<Record> findCompany(String title){
+		return Db.find("select id,business_name from t_business where status = 1 and business_name like ?","%"+title+"%");
+	}
+	//新增企业用户
+	public void saveEmployee(Record record){
+		Db.save("t_business_employee", record);
+	}
+	//更新企业用户
+	public void updateEmployee(Record record){
+		Db.update("t_business_employee", record);
+	}
+	//新增企业
+	public void save(Record record){
+		Db.save("t_business", record);
+	}
+	//更新企业信息
+	public void update(Record record){
+		Db.update("t_business", record);
+	}
+	
+	//新增企业
+	public void saveKeywords(Record record){
+		Db.save("t_business_keywords", record);
+	}
+	//更新企业信息
+	public void updateKeywords(Record record){
+		Db.update("t_business_keywords", record);
+	}
+	
+	/**
+	 * @Title: findKeywordsList 
+	 * @Description: (查询全部企业课程搜索关键字) 
+	 * @return
+	 */
+	public List<Record> findKeywordsList(int page,String name){
+		String sql = "from t_business_keywords as o where o.status = 1 ";
+		if(!StringUtils.isNullOrEmpty(name)){
+			sql += " and o.keywords like '%"+name+"%' ";
+		}
+		sql += " order by o.id desc";
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.id, o.keywords,o.create_at,o.update_at ", sql).getList();
+	}
+	/**
+	 * @Title: findBusinessCount 
+	 * @Description: (查询企业数量) 
+	 * @return
+	 */
+	public long findKeywordsCount(String name){
+		String sql = "select count(*) from t_business_keywords t where t.status = 1";
+		if(!StringUtils.isNullOrEmpty(name)){
+			sql += " and o.keywords like '%"+name+"%' ";
+		}
+		return Db.queryLong(sql);
+	}
+	
+	/**
+	 * @Title: findKeyWords 
+	 * @Description: (根据id查询关键字信息) 
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public Record findKeyWords(Long id){
+		return Db.findById("t_business_keywords", id);
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////                 课程分类管理                                                      ///////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * @Title: findCatalogList 
+	 * @Description: (查询课程分类列表) 
+	 * @param page
+	 * @return
+	 */
+	public List<Record> findCatalogList(int page,String name){
+		String sql = "from t_business_catalog as o where o.`status` = 1 ";
+		if(!StringUtils.isNullOrEmpty(name)){
+			sql += " and o.name like '%"+name+"%'";
+		}
+		sql += " order by o.id desc";
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.id, o.name,o.subtitle,o.create_at", sql).getList();
+	}
+	
+	/**
+	 * @Title: findCatalogCount 
+	 * @Description: (查询企业数量) 
+	 * @return
+	 */
+	public long findCatalogCount(String name){
+		String sql = "select count(*) from t_business_catalog t where t.status = 1";
+		if(!StringUtils.isNullOrEmpty(name)){
+			sql += " and t.name like '%"+name+"%'";
+		}
+		return Db.queryLong(sql);
+	}
+	
+	//新增课程分类
+	public void saveCatalog(Record record){
+		Db.save("t_business_catalog", record);
+	}
+	//更新课程分类
+	public void updateCatalog(Record record){
+		Db.update("t_business_catalog", record);
+	}
+	
+	/**
+	 * @Title: findCatalog 
+	 * @Description: (根据id查询课程分类详细信息) 
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public Record findCatalog(Long id){
+		return Db.findById("t_business_catalog", id);
+	}
+	
+	/**
+	 * @Title: deleteCatalog 
+	 * @Description: (删除课程分类) 
+	 * @param id 
+	 */
+	public void deleteCatalog(Long id){
+		Db.update("update t_business_catalog set status = 0 where id = ?", id);
+	}
+	
+	/**
+	 * @Title: findCatalogList 
+	 * @Description: (查询课程分类列表) 
+	 * @param page
+	 * @return
+	 */
+	public List<Record> findCourseList(int page,Long catalogId){
+		String sql = "from t_business_catalog_course as o where o.`status` = 1 ";
+		if(catalogId!=0){
+			sql += " and o.catalog_id ="+catalogId;
+		}
+		sql += " order by o.id desc";
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.catalog_id, o.course_id,o.course_name,o.create_at", sql).getList();
+	}
+	
+	/**
+	 * @Title: findCatalogCount 
+	 * @Description: (查询企业数量) 
+	 * @return
+	 */
+	public long findCourseCount(Long catalogId){
+		String sql = "select count(*) from t_business_catalog_course t where t.status = 1";
+		if(catalogId!=0){
+			sql += " and t.catalog_id ="+catalogId;
+		}
+		return Db.queryLong(sql);
+	}
+	
+	//根据名称内容模糊搜索录音课程
+	public List<Record> findOnlineCourse(String title){
+		return Db.find("SELECT c.id,c.course_name FROM t_course_online o INNER JOIN t_course c ON c.id = o.course_id WHERE o.`status` = 1 AND c.`status` = 1 and c.course_name like ?","%"+title+"%");
+	}
+	
+	//新增课程分类
+	public void saveCourse(Record record){
+		Db.save("t_business_catalog_course", record);
+	}
+	/**
+	 * @Title: deleteCatalog 
+	 * @Description: (删除课程分类) 
+	 * @param id 
+	 */
+	public void deleteCourse(Long id){
+		Db.update("update t_business_catalog_course set status = 0 where id = ?", id);
+	}
+}

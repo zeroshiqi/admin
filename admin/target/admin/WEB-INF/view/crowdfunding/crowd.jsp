@@ -1,0 +1,157 @@
+<%@ page language="java" contentType="text/html;charset=utf-8"
+	pageEncoding="utf-8"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>插坐学院-后台管理</title>
+<meta name="keywords" content="table">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="renderer" content="webkit">
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+<%@include file="/base/link.jsp"%>
+</head>
+<body>
+
+	<header class="am-topbar admin-header">
+		<%@include file="/base/top.jsp"%>
+	</header>
+
+	<div class="am-cf admin-main">
+		<!-- sidebar start -->
+		<div class="admin-sidebar">
+			<%@include file="/base/left.jsp"%>
+		</div>
+		<!-- sidebar end -->
+
+		<!-- content start -->
+		<div class="admin-content">
+
+			<div class="am-cf am-padding">
+				<div class="am-fl am-cf">
+					<strong class="am-text-primary am-text-lg">众筹列表</strong> / <small>Table</small>
+				</div>
+			</div>
+
+			<div class="am-g">
+				<div class="am-u-md-6 am-cf">
+					<div class="am-fl am-cf">
+						<div class="am-btn-toolbar am-fl">
+							<!-- <div class="am-btn-group am-btn-group-xs">
+								<button type="button" onclick="edit(0)" class="am-btn am-btn-default">
+									<span class="am-icon-plus"></span> 新增
+								</button>
+							</div> -->
+						</div>
+					</div>
+				</div>
+				<div class="am-u-md-3 am-cf">
+					<div class="am-fr">
+						<div class="am-input-group am-input-group-sm">
+						<input type="text" class="am-form-field" id="search"
+								name="search" placeholder="查询姓名" value="${name}"> 
+						</div>
+						<div class="am-input-group am-input-group-sm">
+							<select name="select" id="searchSelect" class="am-form-field"  style="width:200px" >
+								<option value="0" <c:if test="${select eq '0'}">selected="selected"</c:if>>查询全部</option>
+								<option value="1" <c:if test="${select eq '1'}">selected="selected"</c:if>>未退款</option>
+								<option value="2" <c:if test="${select eq '2'}">selected="selected"</c:if>>众筹成功</option>
+							</select>
+							 <span class="am-input-group-btn">
+								<button class="am-btn am-btn-default" onclick="submitForm()" type="button">搜索</button>
+							</span>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+
+			<div class="am-g">
+				<div class="am-u-sm-12">
+					<form class="am-form">
+						<table class="am-table am-table-striped am-table-hover table-main">
+							<thead>
+								<tr>
+									<th class="table-id">ID</th>
+									<th class="table-title">课程名称</th>
+									<th class="table-type">众筹金额</th>
+									<th class="table-author">发起人</th>
+									<th class="table-author">众筹时间</th>
+									<th class="table-author">筹集金额</th>
+									<th class="table-author">支付金额</th>
+									<th class="table-author">微信号</th>
+									<th class="table-author">手机号</th>
+									<th class="table-author">状态</th>
+									<th class="table-author">操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								<c:forEach var="obj" items="${list}">
+								<tr>
+									<td>${obj.id}</td>
+									<td>${obj.course_name}</td>
+									<td>${obj.price}</td>
+									<td><a href="/admin/crowdfunding/info?cid=${obj.id}">${obj.nickname}</a></td>
+									<td>${obj.create_at}</td>
+									<td>${obj.sumPrice}</td>
+									<td>
+										<c:if test="${obj.status == 1}">0</c:if>
+										<c:if test="${obj.status == 2}">${obj.price - obj.sumPrice}</c:if>
+										<c:if test="${obj.status == 3}">0</c:if>
+									</td>	
+									<td>
+										${obj.weixin}
+									</td>
+									<td>${obj.phone}</td>
+									<td>
+										<c:if test="${obj.status == 1}">正在众筹</c:if>
+										<c:if test="${obj.status == 2}">众筹成功</c:if>
+										<c:if test="${obj.status == 3}">众筹失败</c:if>
+									</td>	
+									
+									<td>
+										<c:if test="${obj.status == 3 && obj.refund == 1}">已退款</c:if>
+										<c:if test="${obj.status == 1 || obj.status == 2}">无法退款</c:if>
+										<c:if test="${obj.status == 3 && obj.refund == 0}">
+										<a onclick="updateStatus('${obj.id}')" class="am-btn am-btn-default am-btn-xs am-text-danger" >
+											<span class="am-icon-trash-o"></span> 退款
+										</a>
+										</c:if>
+									</td>								
+								</tr>
+								</c:forEach>
+							</tbody>
+						</table>
+						<div class="am-cf">
+							共 ${page.count} 条记录
+							<div class="am-fr">
+								<jsp:include page="/base/page.jsp">
+									<jsp:param value="${page}" name="page" />
+								</jsp:include>
+							</div>
+						</div>
+					</form>
+				</div>
+
+			</div>
+		</div>
+		<!-- content end -->
+	</div>
+</body>
+<script type="text/javascript">
+function updateStatus(id){
+	showConfirm("确认已退款?",function(){
+		$.getJSON("/admin/crowdfunding/updateStatus?id=" + id, function(result) {
+			if (result.status == 200) {
+				location.reload();
+			} else {
+				showInfo("系统错误....",function(){},3000);
+			}
+		});
+	});
+}
+function submitForm(){
+	window.location.href="/admin/crowdfunding/crowd?select="+$("#searchSelect").val()+"&name="+$("#search").val();
+}
+</script>
+</html>

@@ -1,0 +1,177 @@
+package cn.ichazuo.controller;
+
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.jfinal.aop.Duang;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.upload.UploadFile;
+
+import cn.ichazuo.common.Result;
+import cn.ichazuo.common.base.BaseController;
+import cn.ichazuo.common.utils.CodeUtils;
+import cn.ichazuo.common.utils.DateUtils;
+import cn.ichazuo.common.utils.NumberUtils;
+import cn.ichazuo.common.utils.PasswdEncryption;
+import cn.ichazuo.common.utils.StringUtils;
+import cn.ichazuo.common.utils.model.Page;
+import cn.ichazuo.model.Member;
+import cn.ichazuo.model.MemberInfo;
+import cn.ichazuo.model.Question;
+import cn.ichazuo.model.QuestionInfo;
+import cn.ichazuo.service.QuestionService;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+
+public class QuestionController extends BaseController{
+	private QuestionService service = Duang.duang(QuestionService.class);
+	
+	public void index(){
+		Integer page = getParaToInt("page", 1);
+		long count = service.findQuestionCount();
+		
+		setAttr("list",service.findQuestionList(page));
+		setAttr("page", new Page(page,count,"/admin/question?s=1"));
+		render("question.jsp");
+	}
+	
+	public void delete(){
+		Long id = getParaToLong("id",0L);
+		if(NumberUtils.isNullOrZero(id)){
+			renderJson(error("error"));
+			return;
+		}
+		service.delete(id);
+		renderJson(ok());
+	}
+	
+	public void edit(){
+		Long id = getParaToLong("id",0L);
+		if(!NumberUtils.isNullOrZero(id)){
+			setAttr("record", service.find(id));
+		}
+		render("edit.jsp");
+	}
+	
+	public void save(){
+		Long id = getParaToLong("id",0L);
+		String optionA = getPara("optionA");
+		String optionB = getPara("optionB");
+		String optionC = getPara("optionC");
+		String optionD = getPara("optionD");
+		String answer = getPara("answer");
+		String userName = getPara("userName");
+		String type = getPara("qType");
+//		Integer type = getParaToInt("qType");
+		String question = getPara("question");
+		String parentId = getPara("parentId");
+		String parentName = getPara("parentName");
+		if(StringUtils.isNullOrEmpty(userName,optionA,optionB,optionC,optionD,answer,question)){
+			renderJson(error("参数错误"));
+			return;
+		}
+		Record record = new Record();
+		record.set("status", 1);
+		record.set("title", question);
+		record.set("a", optionA);
+		record.set("b", optionB);
+		record.set("c", optionC);
+		record.set("d", optionD);
+		record.set("answer", answer);
+		record.set("type", type);
+		record.set("user_name", userName);
+		if(parentId==""){
+			record.set("parent_id", 0);
+		}else{
+		record.set("parent_id", parentId);
+		}
+		record.set("parent_name",parentName);
+		
+		try{
+			if(NumberUtils.isNullOrZero(id)){
+				service.save(record);
+			}else{
+				record.set("id", id);
+				service.update(record);
+			}
+			renderJson(ok());
+		}catch(Exception e){
+			e.printStackTrace();
+			renderJson(error(Result.ADMIN_SYSTEM_ERROR));
+		}
+	}
+	
+	public void queryByParentId(){
+		Long parentId = getParaToLong("id", 0L);
+		Integer page = getParaToInt("page", 1);
+		long count = service.findQuestionCountByParentId(parentId);
+		setAttr("list",service.findQuestionListByParentId(page,parentId));
+		setAttr("page", new Page(page,count,"/admin/question?s=1"));
+		render("question.jsp");
+	}
+	
+	//导入xls
+		public void saveQuestions(){
+			try{
+				UploadFile file = getFile("XLSFile");
+				Workbook book =  Workbook.getWorkbook(new FileInputStream(file.getFile()));   
+				
+				Sheet readsheet = book.getSheet(0); 
+				//获取Sheet表中所包含的总行数   
+	            int rsRows = readsheet.getRows();   
+	            List<Record> questionList = new ArrayList<Record>();
+	            for(int i=1;i<rsRows-1;i++){
+	            	Record question = new Record();
+	            	question.set("status", "1");
+	            	//获取Excel导入模板中的问题内容(第一列)
+	            	Cell title = readsheet.getCell(0, i);
+	            	question.set("title", title.getContents());
+	            	//获取Excel导入模板中的A选项的内容(第二列)
+	            	Cell A = readsheet.getCell(1, i);
+	            	question.set("a", A.getContents());
+	            	//获取Excel导入模板中的B选项的内容(第三列)
+	            	Cell B = readsheet.getCell(2, i);
+	            	question.set("b", B.getContents());
+	            	//获取Excel导入模板中的C选项的内容(第四列)
+	            	Cell C = readsheet.getCell(3, i);
+	            	question.set("c", C.getContents());
+	            	//获取Excel导入模板中的D选项的内容(第五列)
+	            	Cell D = readsheet.getCell(4, i);
+	            	question.set("d", D.getContents());
+	            	//获取Excel导入模板中的答案的内容(第六列)
+	            	Cell answer = readsheet.getCell(5, i);
+	            	question.set("answer", answer.getContents());
+	            	//获取Excel导入模板中的出题人的内容(第七列)
+	            	Cell userName = readsheet.getCell(6, i);
+	            	question.set("user_name", userName.getContents());
+	            	//获取试题类型(第八列)
+	            	Cell typeName = readsheet.getCell(7, i);
+	            	//
+	            	String typeNames = typeName.getContents().replaceAll(" ", "");
+	            	if(typeNames=="基础" || typeNames.equals("基础")){
+	            		question.set("type", "1");
+	            	}else if(typeNames=="增强" || typeNames.equals("增强")){
+	            		question.set("type", "2");
+	            	}
+	            	//获取试题所在的二级目录id(第九列)
+	            	Cell parentId = readsheet.getCell(8, i);
+	            	question.set("parent_id",parentId.getContents());
+	            	//获取试题所在的二级目录名称(第十列)
+	            	Cell parentName = readsheet.getCell(9, i);
+	            	question.set("parent_name",parentName.getContents());
+	            	questionList.add(question);
+	            }
+	            service.saveQuestions(questionList);
+//	            callBackNPSService.saveCallBackNPSAll(listcbnps);
+	            renderJson(ok("导入成功！"));
+			}catch(Exception e){
+				e.printStackTrace();
+				renderJson(error("系统异常"));
+			}
+		}
+}

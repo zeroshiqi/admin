@@ -1,0 +1,131 @@
+<%@ page language="java" contentType="text/html;charset=utf-8"
+	pageEncoding="utf-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>插坐学院-后台管理</title>
+<%@include file="/base/link.jsp"%>
+</head>
+<body>
+
+	<header class="am-topbar admin-header">
+		<%@include file="/base/top.jsp"%>
+	</header>
+
+	<div class="am-cf admin-main">
+		<!-- sidebar start -->
+		<div class="admin-sidebar">
+			<%@include file="/base/left.jsp"%>
+		</div>
+		<!-- sidebar end -->
+
+		<!-- content start -->
+		<div class="admin-content">
+
+			<div class="am-cf am-padding">
+				<div class="am-fl am-cf">
+					<strong class="am-text-primary am-text-lg">成绩列表</strong> / <small>Table</small>
+				</div>
+			</div>
+			<div class="am-g" style="margin-top: 20px">
+				<div class="am-u-sm-11">
+					<div class="am-fr">
+<!-- 						一级目录： -->
+<!-- 						<div class="am-input-group am-input-group-sm"> -->
+<!-- 	             			<select id="typeone" style="float: left;width: 315px;height: 43px;"></select> -->
+<!-- 					    </div> -->
+<!-- 					            二级目录： -->
+<!-- 					    <div class="am-input-group am-input-group-sm"> -->
+<!-- 					    	<select id="typetwo" style="float: left;width: 315px;height: 43px;"></select> -->
+<!-- 					    </div> -->
+<!-- 					            分数： -->
+						<div class="am-input-group am-input-group-sm">
+							<input type="text" placeholder="一级目录名称" style="width:20%;float: left;margin-left: 5px;" class="am-form-field" id="topParentName" name="topParentName"> 
+							<input type="text" placeholder="二级目录名称" style="width:20%;float: left;margin-left: 5px;" class="am-form-field" id="parentName" name="parentName"> 
+							<input type="text" placeholder="分数大于等于" style="width:20%;float: left;margin-left: 5px;" class="am-form-field" id="score" name="score"> 
+		 					<span class="am-input-group-btn">
+								<button class="am-btn am-btn-default" onclick="serch()" type="button" >搜索</button>
+							</span>	
+						</div>
+					</div>
+				</div>
+			</div>
+			
+
+			<div class="am-g">
+				<div class="am-u-sm-12">
+					<form class="am-form">
+						<table class="am-table am-table-striped am-table-hover table-main">
+							<thead>
+								<tr>
+									<th class="table-id">ID</th>
+									<th class="table-title"><center>一级目录</center></th>
+									<th class="table-title"><center>二级目录</center></th>
+									<th style="width: 20%;"><center>姓名</center></th>
+									<th style="width: 20%"><center>分数</center></th>
+<!-- 									<th class="table-type">状态</th> -->
+						
+								</tr>
+							</thead>
+							<tbody>
+								<c:forEach var="obj" items="${list}">
+								<tr>
+									<td>${obj.id}</td>
+									<td><center>${obj.typeone}</center></td>
+									<td><center>${obj.typetwo}</center></td>
+									<td><center>${obj.nick_name}</center></td>
+									<td><center>${obj.score}</center></td>
+<!-- 									<td> -->
+<%-- 										<c:if test="${obj.status == 2}">已领取</c:if> --%>
+<%-- 										<c:if test="${obj.status == 3}">已使用</c:if> --%>
+<!-- 									</td> -->
+								</tr>
+								</c:forEach>
+							</tbody>
+						</table>
+						<div class="am-cf">
+							共 ${page.count} 条记录
+							<div class="am-fr">
+								<jsp:include page="/base/page.jsp">
+									<jsp:param value="${page}" name="page" />
+								</jsp:include>
+							</div>
+						</div>
+					</form>
+				</div>
+
+			</div>
+		</div>
+		<!-- content end -->
+	</div>
+</body>
+<script type="text/javascript">
+// 	$(function(){
+// 		$("#addTypeone").bind("click",function(){
+// 			var text = $("#course-typeone").val();
+// 			var ids = $("#id").val();
+// 			if($("#typeone option:selected").val() == ''){
+// 				return;
+// 			}
+// 			$("#course-hidden-typeone").val($("#typeone option:selected").val());
+// 			$("#course-typeone").val($("#typeone option:selected").text());
+// 		});
+// 		$("#addTypeone").bind("click",function(){
+// 			var text = $("#course-typeone").val();
+// 			var ids = $("#id").val();
+// 			if($("#typeone option:selected").val() == ''){
+// 				return;
+// 			}
+// 			$("#course-hidden-typeone").val($("#typeone option:selected").val());
+// 			$("#course-typeone").val($("#typeone option:selected").text());
+// 		});
+// 		add();
+// 		add1();
+// 	});
+
+	function serch(){
+		window.location.href="/admin/ticket?score="+$("#score").val()+"&topParentName="+$("#topParentName").val()+"&parentName="+$("#parentName").val();
+	}
+</script>
+</html>

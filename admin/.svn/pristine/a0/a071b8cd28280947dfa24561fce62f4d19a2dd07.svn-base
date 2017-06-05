@@ -1,0 +1,135 @@
+package cn.ichazuo.controller;
+
+import java.util.List;
+
+import org.json.JSONArray;
+
+import com.jfinal.aop.Duang;
+import com.jfinal.plugin.activerecord.Record;
+
+import cn.ichazuo.common.base.BaseController;
+import cn.ichazuo.common.utils.NumberUtils;
+import cn.ichazuo.common.utils.StringUtils;
+import cn.ichazuo.common.utils.model.Page;
+import cn.ichazuo.service.OrderService;
+
+/**
+ * @ClassName: OrderController
+ * @Description: (订单Controller)
+ * @author ZhaoXu
+ * @date 2015年9月6日 下午1:36:13
+ * @version V1.0
+ */
+public class OrderController extends BaseController {
+	private OrderService orderService = Duang.duang(OrderService.class);
+
+	public void index() {
+		int newtype = 0;
+		setAttr("newtype", newtype);
+		String price = getPara("price");
+		String name = getPara("name","");
+		Integer page = getParaToInt("page", 1);
+		long count = orderService.findWebOrderCount(name,price,newtype);
+
+		List<Record> list = orderService.findWebOrder(page,name,price,newtype);
+		list.forEach(info -> {
+			List<Record> l = orderService.findWebAllUserList(info.getLong("id"));
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < l.size() && i < 3; i++) {
+				sb.append(l.get(i).getStr("name")).append(",");
+			}
+			String ab = StringUtils.removeEndChar(sb.toString(), ',');
+			if (l.size() > 3) {
+				ab += "等...";
+			}
+			info.set("names", ab);
+		});
+		setAttr("list", list);
+		setAttr("price", price).setAttr("name", name);
+		setAttr("page", new Page(page, count, "/admin/order?name="+name));
+		render("order.jsp");
+	}
+	
+	public void onlineNew(){
+		int newtype = 1;
+		setAttr("newtype", newtype);
+		String price = getPara("price");
+		String name = getPara("name","");
+		Integer page = getParaToInt("page", 1);
+		long count = orderService.findWebOrderCount(name,price,newtype);
+
+		List<Record> list = orderService.findWebOrder(page,name,price,newtype);
+		list.forEach(info -> {
+			List<Record> l = orderService.findWebAllUserList(info.getLong("id"));
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < l.size() && i < 3; i++) {
+				sb.append(l.get(i).getStr("name")).append(",");
+			}
+			String ab = StringUtils.removeEndChar(sb.toString(), ',');
+			if (l.size() > 3) {
+				ab += "等...";
+			}
+			info.set("names", ab);
+		});
+		setAttr("list", list);
+		setAttr("price", price).setAttr("name", name);
+		setAttr("page", new Page(page, count, "/admin/order/onlineNew?name="+name));
+		render("order.jsp");
+	}
+
+	public void users() {
+		Integer page = getParaToInt("page", 1);
+		Long courseId = getParaToLong("courseId", 0L);
+		if (NumberUtils.isNullOrZero(courseId)) {
+			redirect("/order");
+			return;
+		}
+		List<Record> list = orderService.findWebUserList(page, courseId);
+//		list.forEach(info -> {
+//			info.set("content1", StringUtils.subString(info.getStr("content")));
+//		});
+		long count = orderService.findWebUserCount(courseId);
+		setAttr("list", list);
+		setAttr("page", new Page(page, count, "/admin/order/users?courseId=" + courseId));
+		render("orderuser.jsp");
+	}
+	
+	@Deprecated
+	public void online(){
+		String name = getPara("name","");
+		int page = getParaToInt("page", 1);
+		long count = orderService.findWebOnlineCourseOrderCount(name);
+
+		List<Record> list = orderService.findWebOnlineCourseOrder(page,name);
+		setAttr("list", list);
+		setAttr("page", new Page(page, count, "/admin/order/online?name="+name));
+		render("online.jsp");
+	}
+	//更新历史订单加入省份和城市
+	public void update() {
+		List<Record> list = orderService.findAllOrders();
+		list.forEach(info -> {
+//			List<Record> l = orderService.request(info.getStr("mobile"));
+			//根据手机号获取归属地
+			String str = null;
+			String province="";
+			String city="";
+			JSONArray jsonArray = null;
+			str = "[" +orderService.request(info.getStr("mobile")) + "]";
+			jsonArray = new JSONArray(str);
+			int errNumResult = (int) jsonArray.getJSONObject(0).get("errNum");
+			if(errNumResult == 0){
+				org.json.JSONObject jsonresult = (org.json.JSONObject) jsonArray.getJSONObject(0).get("retData");
+				province = jsonresult.getString("province");
+				city = jsonresult.getString("city");
+			}
+			Long id = info.getLong("id");
+			//将查询出来的省份和城市更新到数据库
+			Record record = new Record();
+			record.set("city", city);
+			record.set("province", province);
+			record.set("id", id);
+			orderService.update(record);
+		});
+	}
+}

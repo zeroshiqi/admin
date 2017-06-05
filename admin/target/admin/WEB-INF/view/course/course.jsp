@@ -1,0 +1,509 @@
+<%@ page language="java" contentType="text/html;charset=utf-8"
+	pageEncoding="utf-8"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>插坐学院-后台管理</title>
+<meta name="keywords" content="table">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="renderer" content="webkit">
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+<%@include file="/base/link.jsp"%>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.4"></script>
+<link rel="stylesheet" href="/admin/premage/premage.min.css">
+<script src="/admin/premage/premage.min.js"></script>
+<link href="/admin/ue/themes/default/css/ueditor.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" charset="utf-8" src="/admin/ue/ueditor.config.js"></script>
+<script type="text/javascript" charset="utf-8" src="/admin/ue/ueditor.all.js"> </script>
+<script type="text/javascript" charset="utf-8" src="/admin/ue/lang/zh-cn/zh-cn.js"></script>
+</head>
+<body>
+
+	<header class="am-topbar admin-header">
+		<%@include file="/base/top.jsp"%>
+	</header>
+
+	<div class="am-cf admin-main">
+		<!-- sidebar start -->
+		<div class="admin-sidebar">
+			<%@include file="/base/left.jsp"%>
+		</div>
+		<!-- sidebar end -->
+
+		<!-- content start -->
+		<div class="admin-content">
+    <div class="am-cf am-padding">
+      <div class="am-fl am-cf"><strong class="am-text-primary am-text-lg">编辑课程</strong> / <small>Edit user</small></div>
+    </div>
+
+    <hr/>
+	
+    <div class="am-g">
+      <div class="am-u-sm-12 am-u-md-4 am-u-md-push-8">
+      </div>
+		
+      <div class="am-u-sm-12 am-u-md-8 am-u-md-pull-4">
+        <form class="am-form am-form-horizontal" id="myform" method="post" >
+          <div class="am-form-group">
+            <label class="am-u-sm-3 am-form-label">头图</label>
+            <div class="am-u-sm-9">
+             	<input type="file" name="imglive" id="imglive" accept="image/png, image/jpeg, image/jpg" />
+             	<input type="hidden" name="courseId" id="courseId" value="${course.id}">
+            </div>
+          </div>
+        
+          <div class="am-form-group">
+            <label for="course-name" class="am-u-sm-3 am-form-label"> 课程名称 </label>
+            <div class="am-u-sm-9">
+              <input type="text" name="courseName" id="course-name" value="${course.course_name}" placeholder="课程名称"  >
+            </div>
+          </div>
+
+		 <div class="am-form-group">
+            <label for="course-type" class="am-u-sm-3 am-form-label">类型 / Type</label>
+            <div class="am-u-sm-9">
+              	<select id="course-type" name="type" onchange="changeType()">
+              		<c:if test="${course.id == null}">
+	              	<option value="-1" selected="selected">------请选择------</option>
+	              	</c:if>
+              		<option value="0">线下课程</option>
+              		<option value="1">线上课程</option>
+              	</select>
+            </div>
+          </div>
+          
+          <div class="am-form-group">
+            <label for="course-beginTime" class="am-u-sm-3 am-form-label">开课时间 / BeginTime</label>
+            <div class="am-u-sm-9">
+              <input type="text" name="beginTime" id="course-beginTime" value="${course.begin_time}" placeholder="例 : 2015-07-30">
+            </div>
+          </div>
+			
+		 <div id="offlineDiv">
+		 	<div class="am-form-group">
+	            <label for="offline-type" class="am-u-sm-3 am-form-label">课程类型</label>
+	            <div class="am-u-sm-9">
+	              	<select id="offline-type" name="offlineType">
+	              		<c:forEach var="obj" items="${offlineType}">
+	              		<option value="${obj.id}">${obj.value}</option>
+	              		</c:forEach>
+	              	</select>
+	            </div>
+	        </div>
+	        
+	         <div class="am-form-group">
+	            <label for="course-price" class="am-u-sm-3 am-form-label">价格 / Price</label>
+	            <div class="am-u-sm-9">
+	              <input type="text" id="course-price" name="price" value="${offline.price}" placeholder="价格 / Price">
+	            </div>
+	         </div>
+	         
+	          <div class="am-form-group">
+	            <label for="course-time" class="am-u-sm-3 am-form-label">课程时间 / CourseTime</label>
+	            <div class="am-u-sm-9">
+	              <input type="text" id="course-time" name="courseTime" value="${offline.course_time}" placeholder="课程时间 / CourseTime">
+	            </div>
+	          </div>
+	          
+	          <div class="am-form-group">
+		            <label for="offline-city" class="am-u-sm-3 am-form-label">城市</label>
+		            <div class="am-u-sm-9">
+		              	<select id="offline-city" name="city">
+		              		<c:forEach var="obj" items="${cityList}">
+		              		<option value="${obj.id}">${obj.city_name}</option>
+		              		</c:forEach>
+		              	</select>
+		            </div>
+		       </div>
+		       
+		       <div class="am-form-group">
+	            <label for="course-teacher" class="am-u-sm-3 am-form-label">讲师</label>
+	            <div class="am-u-sm-9">
+	              <input type="text" id="course-teacher" readonly="readonly" value="${teacherNames}">
+	              <input type="hidden" id="course-hidden-teacher" name="teacher" value="${offline.teacher_id}" readonly="readonly">
+	              <br>
+	              <input type="text" id="teacher" value="" style="float: left;width: 200px">
+	              <select id="teachers" style="float: left;width: 315px">
+	              </select>
+	              <br>
+	              <div style="float: none;">
+	              <a class="am-btn am-btn-primary" id="addTeacher" >添加</a>&nbsp;<a class="am-btn am-btn-primary" id="clear">清除</a>
+	              </div>
+	            </div>
+	          </div>
+		       
+		        <div class="am-form-group">
+		            <label for="course-studentNum" class="am-u-sm-3 am-form-label">招生总数 </label>
+		            <div class="am-u-sm-9">
+		              <input type="number" id="course-studentNum" value="${offline.student_num}" name="studenNumber" placeholder="招生总数">
+		            </div>
+		        </div>
+		        
+		         <div class="am-form-group">
+		            <label for="course-star" class="am-u-sm-3 am-form-label">评分 / Star </label>
+		            <div class="am-u-sm-9">
+		              <input type="text" id="course-star" name="star" value="${offline.star}" placeholder="评分 / Star">
+		            </div>
+		        </div>
+		        
+		        <div class="am-form-group">
+		            <label for="course-address" class="am-u-sm-3 am-form-label">地址 / Address </label>
+		            <div class="am-u-sm-9">
+		              <input type="text" id="course-address" value="${offline.address}" onchange="searchByStationName()" name="address" placeholder="地址 / Address">
+		            </div>
+		        </div>
+		        
+		        <div class="am-form-group">
+		            <label for="course-lon" class="am-u-sm-3 am-form-label">经度 / lon </label>
+		            <div class="am-u-sm-9">
+		              <input type="text" id="course-lon" value="${offline.lon}" name="lon" placeholder="经度 / lon">
+		            </div>
+		        </div>
+		        
+		        <div class="am-form-group">
+		            <label for="course-lat" class="am-u-sm-3 am-form-label">纬度 / lat </label>
+		            <div class="am-u-sm-9">
+		              <input type="text" id="course-lat" name="lat" value="${offline.lat}" placeholder="地址 / Address">
+		            </div>
+		        </div>
+		        
+		        <div class="am-form-group">
+		        	<label for="course-lat" class="am-u-sm-3 am-form-label"> </label>
+		        	<div class="am-u-sm-9">
+		            <div id="container" style="width: 515px;height: 515px">
+					</div>
+					</div>
+		        </div>
+		        
+		        <div class="am-form-group">
+		            <label for="editor" class="am-u-sm-3 am-form-label">课程介绍</label>
+		            <div class="am-u-sm-9">
+		            <script id="editor" type="text/plain" style="width:515px;height:300px;">${content}</script>
+		             <input type="hidden" name="courseContent" id="courseContent" />
+		            </div>
+		        </div>
+		 </div>
+		 
+		 <div id="onlineDiv">
+		 	  <div class="am-form-group">
+		            <label for="online-playAddress" class="am-u-sm-3 am-form-label">播放地址</label>
+		            <div class="am-u-sm-9">
+		              	<select id="online-playAddress" name="playAddress">
+		              		<c:forEach var="obj" items="${addressList}">
+		              		<option value="${obj.id}">${obj.address_name}</option>
+		              		</c:forEach>
+		              	</select>
+		            </div>
+		       </div>
+		       
+		       <div class="am-form-group">
+		            <label class="am-u-sm-3 am-form-label"> 直播时间 </label>
+		            <div class="am-u-sm-9">
+		              	<select id="online-playStartHour" name="playStrtHour" style="width: 80px;float: left;">
+		              		<c:forEach var="obj" begin="5" end="23">
+		              		<option value="${obj}">${obj}</option>
+		              		</c:forEach>
+		              	</select>
+		              	<span style="float: left;font-size: 1.6rem;line-height: 1.2;color: #555;vertical-align: middle;padding-top: 10px">&nbsp;&nbsp;点&nbsp;&nbsp;</span>
+		              	<select id="online-playStartMinute" name="playStartMinute" style="width: 80px;float: left;">
+		              		<c:forEach var="obj" begin="0" end="55" step="5">
+		              		<option value="${obj}">${obj}</option>
+		              		</c:forEach>
+		              	</select>
+		              	<span style="float: left;font-size: 1.6rem;line-height: 1.2;color: #555;vertical-align: middle;padding-top: 10px">&nbsp;&nbsp;--&nbsp;&nbsp;</span>
+		              	<select id="online-playEndHour" name="playEndHour" style="width: 80px;float: left;">
+		              		<c:forEach var="obj" begin="5" end="23">
+		              		<option value="${obj}">${obj}</option>
+		              		</c:forEach>
+		              	</select>
+		              	<span style="float: left;font-size: 1.6rem;line-height: 1.2;color: #555;vertical-align: middle;padding-top: 10px">&nbsp;&nbsp;点&nbsp;&nbsp;</span>
+		              	<select id="online-playEndMinute" name="playEndMinute" style="width: 80px;float: left;">
+		              		<c:forEach var="obj" begin="0" end="55" step="5">
+		              		<option value="${obj}">${obj}</option>
+		              		</c:forEach>
+		              	</select>
+		            </div>
+		       </div>
+		 </div>
+          	
+          <div class="am-form-group">
+            <div class="am-u-sm-9 am-u-sm-push-3">
+              <a class="am-btn am-btn-primary" id="saveBtn">保存修改</a>
+              
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+		<!-- content end -->
+	</div>
+</body>
+<script type="text/javascript">
+var ue = UE.getEditor('editor');
+
+function save(){
+	$("#courseContent").val($("#content").val());
+	var courseName = $("#course-name").val();
+	if(courseName == ''){
+		showInfo("请输入课程名称!",function(){},3000);
+		return;
+	}
+	var type = $("#course-type option:selected").val();
+	if(type == '' || type == -1){
+		showInfo("请输选择课程类型!",function(){},3000);
+		return;
+	}
+	var beginTime = $("#course-beginTime").val();
+	if(beginTime == ''){
+		showInfo("请输入课程开始时间!",function(){},3000);
+		return;
+	}
+	if(!beginTime.match(/^((?:19|20)\d\d)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/) && !beginTime.match(/^((?:19|20)\d\d)-([1-9]|1[012])-([1-9]|[12][0-9]|3[01])$/)) { 
+		showInfo("请输入正确的课程开始时间!",function(){},3000);
+		return;
+	}
+	
+	if(type == 0){
+		var offlineType = $("#offline-type option:selected").val();
+		if(offlineType == ''){
+			showInfo("请选择课程类别!",function(){},3000);
+			return;
+		}
+		var price = $("#course-price").val();
+		if(price == ''){
+			showInfo("请输入价格!",function(){},3000);
+			return;
+		}
+		if(!price.match(/^[0-9]+.?[0-9]*$/)){
+			showInfo("请输入正确的价格!",function(){},3000);
+			return;
+		}
+		var time = $("#course-time").val();
+		if(time == ''){
+			showInfo("请输入课程时间!",function(){},3000);
+			return;
+		}
+		var city = $("#offline-city option:selected").val();
+		if(city == '' || city == 0){
+			showInfo("请选择城市!",function(){},3000);
+			return;
+		}
+		var teacher = $("#course-hidden-teacher").val();
+		if(teacher == ''){
+			showInfo("请选择讲师!",function(){},3000);
+			return;
+		}
+		var studentNum = $("#course-studentNum").val();
+		if(studentNum == '' || studentNum < 1){
+			showInfo("请输入招生数量!",function(){},3000);
+			return;
+		}
+		var star = $("#course-star").val();
+		if(star == ''){
+			showInfo("请输入评分!",function(){},3000);
+			return;
+		}
+		if(!star.match(/^[0-9]+.?[0-9]*$/)){
+			showInfo("请输入正确的评分!",function(){},3000);
+			return;
+		}
+		var address = $("#course-address").val();
+		if(address == ''){
+			showInfo("请输入地址!",function(){},3000);
+			return;
+		}
+		var lon = $("#course-lon").val();
+		if(lon == ''){
+			showInfo("请输入经度!",function(){},3000);
+			return;
+		}
+		var lat = $("#course-lat").val();
+		if(lat == ''){
+			showInfo("请输入纬度!",function(){},3000);
+			return;
+		}
+		if(!ue.hasContents()){
+			showInfo("请输入课程简介",function(){},3000);
+			return;
+		}
+		$("#courseContent").val(ue.getContent()); 
+		var options ={
+			url:"/admin/course/save",
+			success : function(data) {
+				if(data.status == 200){
+	            	window.location.href = "/admin/course/offline";
+	            }else{
+	            	showInfo(data.msg,function(){},3000);
+	            }
+			}
+		};
+		$("#myform").ajaxSubmit(options);		
+	}else{
+		var playAddress = $("#online-playAddress option:selected").val();
+		if(playAddress == '' || playAddress == 0){
+			showInfo("请选择播放地址!",function(){},3000);
+			return;
+		}
+		
+		var playStartHour = $("#online-playStartHour option:selected").val();
+		var playEndHour = $("#online-playEndHour option:selected").val();
+		var playStartMinute = $("#online-playStartMinute option:selected").val();
+		var playEndMinute = $("#online-playEndMinute option:selected").val();
+		if(parseInt(playStartHour) > parseInt(playEndHour)){
+			showInfo("结束时间必须大于开始时间!",function(){},3000);
+			return;
+		}
+		if(parseInt(playStartHour) == parseInt(playEndHour)){
+			if(playStartMinute >= playEndMinute){
+				showInfo("结束时间必须大于开始时间!",function(){},3000);
+				return;
+			}
+		}
+		/* if(!ue.hasContents()){
+			showInfo("请输入课程简介",function(){},3000);
+			return;
+		}
+		$("#courseContent").val(ue.getContent()); */
+		var options ={
+			url:"/admin/course/save",
+			success : function(data) {
+				if(data.status == 200){
+	            	window.location.href = "/admin/course/online";
+	            }else{
+	            	showInfo(data.msg,function(){},3000);
+	            }
+			}
+		};
+		$("#myform").ajaxSubmit(options);	
+	}
+
+}
+
+$(function(){
+	$("#offlineDiv").hide();
+	$("#onlineDiv").hide();
+	
+	var id = $("#courseId").val();
+	if(id != '' && id > 0){
+		$("#course-type").val('${course.type}');
+		changeType();
+		var type = $("#course-type option:selected").val();
+		
+		ue.addListener("ready", function () {
+			if(type == 0){
+				$("#offline-city").val('${offline.city_id}');
+				searchByStationName();
+				$("#offline-type").val("${offline.offline_type_id}");
+			}else{
+				$("#online-playAddress").val('${online.play_address_id}');
+				$("#online-playStartHour").val('${startHour}');
+				$("#online-playStartMinute").val('${startMinute}');
+				$("#online-playEndHour").val('${endHour}');
+				$("#online-playEndMinute").val('${endMinute}');
+				//editor1.text('');
+			}
+		});
+		
+		
+	}
+	
+	$("#saveBtn").bind("click", function(){  
+		save();
+	});
+	$("#teacher").bind("change",function(){
+		$("#teachers").empty();
+		add($("#teacher").val());
+	});
+	$("#imglive").premage({
+		width:'200px',
+	    height:'200px',
+	    shape: {
+	        type:'square'
+	    },
+	    image_container:{ 
+	        shape: {
+	            type:'square'
+	        }
+	    },
+	    animation: {
+	        enabled: true
+	    }
+	});
+	add("");
+	$("#addTeacher").bind("click",function(){
+		var text = $("#course-teacher").val();
+		var ids = $("#course-hidden-teacher").val();
+		if($("#teachers option:selected").val() == ''){
+			return;
+		}
+		if(text == ''){
+			$("#course-hidden-teacher").val($("#teachers option:selected").val());
+			$("#course-teacher").val($("#teachers option:selected").text());
+		}else{
+			$("#course-hidden-teacher").val(ids + "," +$("#teachers option:selected").val());
+			$("#course-teacher").val(text + "," + $("#teachers option:selected").text());
+		}
+	});
+	$("#clear").bind("click",function(){
+		$("#course-hidden-teacher").val('');
+		$("#course-teacher").val('');
+	});
+	
+	$("#img-live-preview-id").attr("src","${course.avatar}");
+});
+
+function add(str){
+	$.getJSON("/admin/member/findAllMember?name="+str,function(result){
+		var html = "";
+		for(var i=0;i<result.length;i++){
+			html += "<option value='"+result[i].id+"'>";
+			html += result[i].value;
+			html += "</option>";
+		}
+		$("#teachers").html(html);
+	});
+	
+}
+
+function changeType(){
+	var value = $("#course-type").val();
+	if(value == '-1'){
+		$("#offlineDiv").hide();
+		$("#onlineDiv").hide();
+	}else if(value == '0'){
+		$("#offlineDiv").show();
+		$("#onlineDiv").hide();
+	}else{
+		$("#offlineDiv").hide();
+		$("#onlineDiv").show();
+	}
+}
+//百度地图
+var map = new BMap.Map("container");
+map.centerAndZoom("北京", 14);
+map.enableScrollWheelZoom();    //启用滚轮放大缩小，默认禁用
+map.enableContinuousZoom();    //启用地图惯性拖拽，默认禁用
+map.addControl(new BMap.NavigationControl());  //添加默认缩放平移控件
+map.addControl(new BMap.OverviewMapControl()); //添加默认缩略地图控件
+var localSearch = new BMap.LocalSearch(map);
+localSearch.enableAutoViewport(); //允许自动调节窗体大小
+
+//查询坐标 
+function searchByStationName(){
+	map.clearOverlays();//清空原来的标注
+	var keyword =$("#course-address").val();
+	localSearch.setSearchCompleteCallback(function (searchResult) {
+    var poi = searchResult.getPoi(0);
+    $("#course-lon").val(poi.point.lng);
+    $("#course-lat").val(poi.point.lat);
+    map.centerAndZoom(poi.point, 15);
+    var marker = new BMap.Marker(new BMap.Point(poi.point.lng, poi.point.lat));  // 创建标注，为要查询的地址对应的经纬度
+    map.addOverlay(marker);
+});
+localSearch.search(keyword);
+}
+
+</script>
+</html>

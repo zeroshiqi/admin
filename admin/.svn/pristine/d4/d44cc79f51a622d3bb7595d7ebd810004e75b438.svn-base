@@ -1,0 +1,44 @@
+package cn.ichazuo.controller;
+
+import com.jfinal.aop.Duang;
+
+import cn.ichazuo.common.base.BaseController;
+import cn.ichazuo.common.utils.model.Page;
+import cn.ichazuo.service.FeedbackService;
+import cn.ichazuo.service.InvoiceService;
+
+/**
+ * @ClassName: InvoiceController 
+ * @Description: (发票Controller) 
+ * @author ZhaoXu
+ * @date 2015年8月12日 上午11:31:56 
+ * @version V1.0
+ */
+public class InvoiceController extends BaseController{
+	private InvoiceService invoiceService = Duang.duang(InvoiceService.class);
+	
+	public void index(){
+		Integer page = getParaToInt("page",1);
+		String invoiceTitle = getPara("invoiceTitle");
+		String courseName = getPara("courseName");
+		String name = getPara("nickName");
+		long count = invoiceService.findInvoiceCount(invoiceTitle,courseName,name);
+		setAttr("list",invoiceService.findInvoiceList(page,invoiceTitle,courseName,name));
+		setAttr("page", new Page(page,count,"/admin/invoice?s=1&courseName="+courseName+"&invoiceTitle="+invoiceTitle));
+		setAttr("name",courseName);
+		render("invoice.jsp");
+	}
+	//切换状态为已处理
+	public void dispose(){
+		Long id = getParaToLong("id",0L);
+		Integer page = getParaToInt("page",1);
+		invoiceService.updateInvoice(id);
+		String invoiceTitle = getPara("invoiceTitle");
+		String courseName = getPara("courseName");
+		String name = getPara("nickName");
+		long count = invoiceService.findInvoiceCount(invoiceTitle,courseName,name);
+		setAttr("list",invoiceService.findInvoiceList(page,invoiceTitle,courseName,name));
+		setAttr("page", new Page(page,count,"/admin/invoice?s=1"));
+		render("invoice.jsp");
+	}
+}

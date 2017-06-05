@@ -1,0 +1,88 @@
+package cn.ichazuo.controller;
+
+import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.jfinal.aop.Clear;
+import com.jfinal.aop.Duang;
+import com.jfinal.core.ActionKey;
+import com.jfinal.kit.PropKit;
+
+import cn.ichazuo.common.base.BaseController;
+import cn.ichazuo.common.utils.PasswdEncryption;
+import cn.ichazuo.common.utils.StringUtils;
+import cn.ichazuo.common.utils.model.LoginUser;
+import cn.ichazuo.model.User;
+import cn.ichazuo.service.LogService;
+import cn.ichazuo.service.UserService;
+
+/**
+ * @ClassName: LoginController 
+ * @Description: (loginController) 
+ * @author ZhaoXu
+ * @date 2015年8月1日 上午9:44:11 
+ * @version V1.0
+ */
+public class LoginController extends BaseController{
+	private UserService userService = Duang.duang(UserService.class);
+	private LogService logService = Duang.duang(LogService.class);
+	protected Logger logger = LoggerFactory.getLogger(getClass());
+	
+	@Clear
+	public void login(){
+		String account = getPara("account");	//账号
+		String password = getPara("password");	//密码
+		Date date = new Date();
+//		String captcha = getPara("captcha");	//验证码
+		
+		if(StringUtils.isNullOrEmpty(account)){
+			renderJson(error("账号还没填呢!"));
+			return;
+		}
+		
+		if(StringUtils.isNullOrEmpty(password)){
+			renderJson(error("密码还没填呢!"));
+			return;
+		}
+		
+//		if(StringUtils.isNullOrEmpty(captcha)){
+//			renderJson(error("验证码还没填呢!"));
+//			return;
+//		}
+		
+		User user = userService.findUserByAccount(account);
+		if(user == null){
+			renderJson(error("无此账号!"));
+			return;
+		}
+		
+		if(!PasswdEncryption.verify(password, user.getStr("password"))){
+			renderJson(error("密码错误!"));
+			return;
+		}
+		
+		//session loginUser
+		LoginUser login = new LoginUser();
+		login.setAccount(user.getStr("account"));
+		login.setPassword(user.getStr("password"));
+		login.setId(user.getLong("id"));
+		login.setRealName(user.getStr("real_name"));
+		
+		setSessionAttr(PropKit.get("project.session"), login);
+		setSessionAttr("userName", login.getRealName());
+		
+		logService.saveRequestLog(login, getRequest().getRemoteAddr(), getRequest().getRequestURI(), "用户登录");
+		renderJson(ok());
+//		logger.error("登录用户："+user.getStr("real_name") +"  时间："+date);
+	}
+	
+	@Clear
+	@ActionKey("/logout")
+	public void logout(){
+		//销毁session
+		getSession().invalidate();
+		redirect("/");
+	}
+}

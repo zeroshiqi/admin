@@ -1,0 +1,144 @@
+package cn.ichazuo.controller;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
+import com.alibaba.fastjson.JSON;
+import com.jfinal.aop.Duang;
+import com.jfinal.kit.PropKit;
+import com.jfinal.plugin.activerecord.Record;
+
+import cn.ichazuo.common.base.BaseController;
+import cn.ichazuo.common.utils.ChuanglanSMS;
+import cn.ichazuo.common.utils.DateUtils;
+import cn.ichazuo.common.utils.MobileUtils;
+import cn.ichazuo.common.utils.StringUtils;
+import cn.ichazuo.common.utils.model.LoginUser;
+import cn.ichazuo.common.utils.model.Page;
+import cn.ichazuo.service.CourseService;
+import cn.ichazuo.service.InfoService;
+import cn.ichazuo.service.LogService;
+
+public class InfoController extends BaseController {
+	private InfoService service = Duang.duang(InfoService.class);
+	private CourseService courseservice = Duang.duang(CourseService.class);
+	private LogService logService = Duang.duang(LogService.class);
+	private static final String str = "【插坐学院】亲爱的#xxx#，";
+	
+	public void index(){
+		try{
+			int page = getParaToInt("page", 1);
+			String mobile = getPara("mobile");
+			String coursename = getPara("coursename");
+			long count = service.findSmsCount(mobile,coursename);
+
+			List<Record> list = service.findSmsList(page,mobile,coursename);
+//			list.forEach(info -> {
+//				info.set("text", info.getStr("text").length() > 40 ? info.getStr("text").substring(0, 40) +"..." : info.getStr("text"));
+//			});
+			setAttr("list", list);
+			setAttr("page", new Page(page, count, "/admin/info?s=1&mobile="+mobile+"&coursename="+coursename));
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		render("infos.jsp");
+	}
+	
+	public void save(){
+		String text = getPara("text");
+		Long courseId = getParaToLong("courseId");
+		if(StringUtils.isNullOrEmpty(text)){
+			renderJson(error("error"));
+			return;
+		}
+		List<Record> list = service.findCourseMember(courseId);
+		StringBuffer errStr = new StringBuffer();
+		for(Record r : list){
+			try {
+				MobileUtils.sendPost(r.getStr("mobile"), str.replace("#xxx#", r.getStr("name"))+text);
+				Record r1 = new Record();
+				r.set("create_at", DateUtils.getNowDate());
+				r.set("text", text);
+				r.set("course_id", courseId);
+				service.save(r1);
+			} catch (Exception e) {
+				errStr.append(r.getStr("mobile")).append(",");
+			}
+		}
+		LoginUser user = getSessionAttr(PropKit.get("project.session"));
+		logService.saveLog(user,1,courseId,
+				"用户:" + user.getRealName() + "->发送了课程Id为:" + courseId + " 的短信");
+		if(errStr.length() > 0){
+			renderJson(status(888, errStr.toString()));
+		}else{
+			renderJson(ok("ok"));
+		}
+	}
+	
+	public void add(){
+		setAttr("courseList", service.findOfflineCourse());
+		render("info.jsp");
+	}
+	
+	public void sendMessage(){
+		String text = getPara("text");
+		Long courseId = getParaToLong("courseId");
+		if(StringUtils.isNullOrEmpty(text)){
+			renderJson(error("error"));
+			return;
+		}
+		String courseName = courseservice.findCourseNameById(courseId);
+		List<Record> list = service.findCourseMember(courseId);
+		StringBuffer errStr = new StringBuffer();
+		for(Record r : list){
+			try {
+//				MobileUtils.sendPost(r.getStr("mobile"), str.replace("#xxx#", r.getStr("nick_name"))+text);
+//				ChuanglanSMS client = new ChuanglanSMS("M3667756","0927196a");
+				ChuanglanSMS client = new ChuanglanSMS("N3606610","65e67e31");
+				CloseableHttpResponse response = null;
+				//发送短信
+				response = client.sendMessage(r.getStr("mobile"),str.replace("#xxx#", r.getStr("name"))+text.replaceAll(" ",""));
+//				response = client.sendMessage("15910491294",str.replace("#xxx#", r.getStr("nick_name"))+text.replaceAll(" ",""));
+				if(response != null && response.getStatusLine().getStatusCode()==200){
+					Date date = new Date();
+					Record record = new Record();
+					String a = EntityUtils.toString(response.getEntity());
+					JSONObject jsObject = new JSONObject(a);
+					Map<String, Object> jsonMap = (Map<String, Object>) JSON.parse(jsObject.toString());
+					record.set("mobile", r.getStr("mobile"));
+					record.set("content", str.replace("#xxx#", r.getStr("name"))+text.replaceAll(" ",""));
+					record.set("create_at", date);
+					record.set("success", jsonMap.get("success").toString());
+					record.set("course_id", courseId);
+					record.set("course_name", courseName);
+					if(!(jsonMap.get("success").toString().equals("true") || jsonMap.get("success").toString()=="true")){
+						errStr.append(r.getStr("mobile")).append(",");
+						record.set("recode",jsonMap.get("r"));
+					}else{
+						record.set("recode","0");
+					}
+					//把每一条短信的发送记录保存到数据库
+					service.saveSms(record);
+				}
+//				Thread.sleep(1000);
+			} catch (Exception e) {
+				errStr.append(r.getStr("mobile")).append(",");
+			}
+		}
+		Record r = new Record();
+		r.set("create_at", DateUtils.getNowDate());
+		r.set("text", text);
+		r.set("course_id", courseId);
+		service.save(r);
+		if(errStr.length() > 0){
+			renderJson(status(888, errStr.toString()));
+		}else{
+			renderJson(ok("ok"));
+		}
+	}
+}

@@ -1,0 +1,46 @@
+#project setting
+project.dev=true
+project.session=loginUser
+
+#upload setting
+#upload.path=/mnt/data/files/
+#upload.path=/Users/Alan/Documents/Photo/
+upload.path=/data/files/
+
+#project.image.url=http://www.chazuomba.com/files/
+project.image.url=http://123.57.84.121/files/
+
+#mysql setting
+#mysql.url=jdbc:mysql://112.124.13.195:3306/iserver?useUnicode=true&autoReconnect=true&rewriteBatchedStatements=TRUE
+mysql.url=jdbc:mysql://123.57.84.121:3306/iserver?useUnicode=true&autoReconnect=true&rewriteBatchedStatements=TRUE
+mysql.username=root
+mysql.password=chazuomba*&*111
+
+#im setting
+im.chazuo.appkey=chazuo#chazuocourse
+im.chazuo.clientid=YXA6--GcYBp5EeWmfu8R_C6vqg
+im.chazuo.clientsecret=YXA6-G52u48ogqlFWRQ-SoNZfdLfjU4
+
+im.gugu.appkey=chazuo#gugu
+im.gugu.clientid=YXA6_SE_oAOAEeWfconYmBl1Yg
+im.gugu.clientsecret=YXA6BmBqcLrJXQgd1pjpoqQmR5fBx0g
+#test
+im.test.appkey=chazuo#test
+im.test.clientid=YXA6asntIDJ8EeWJ0L2Uh8cEmA
+im.test.clientsecret=YXA6SH_c6WND97gYgfo6PFfLighf-1A
+
+
+#jpush setting
+jpush.ichazuo.appkey=26442956ad6e676db40d328e
+jpush.ichazuo.secret=7932fded21bba3ad38260a37
+
+jpush.gugu.appkey=62526c24d1eb90c119ba4e6d
+jpush.gugu.secret=524699692545130a3a75d4e1
+
+#url
+url.test=https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx1541ccc024a8e057&redirect_uri=http://www.chazuomba.com/files/hehe/offlinePay.html?courseId=#courseId#&response_type=code&scope=snsapi_userinfo&state=123#wechat_redirect
+url.pro=https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx1541ccc024a8e057&redirect_uri=http://www.chazuomba.com/files/courseWeb/offlinePay.html?courseId=#courseId#&response_type=code&scope=snsapi_userinfo&state=123#wechat_redirect
+
+# sms
+sms.duanxinbao.username=sms_chazuo
+sms.duanxinbao.password=z123456

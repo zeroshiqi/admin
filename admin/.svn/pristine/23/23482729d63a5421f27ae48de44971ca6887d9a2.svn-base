@@ -1,0 +1,286 @@
+package cn.ichazuo.service;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Date;
+import java.util.List;
+
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+
+import cn.ichazuo.common.Result;
+import cn.ichazuo.common.utils.StringUtils;
+
+/**
+ * @ClassName: OrderService 
+ * @Description: (订单Service) 
+ * @author ZhaoXu
+ * @date 2015年9月6日 下午1:38:23 
+ * @version V1.0
+ */
+public class OrderService {
+	/**
+	 * @Title: findWebOrder 
+	 * @Description: (查询Web订单列表) 
+	 * @param page
+	 * @return
+	 */
+	public List<Record> findWebOrder(int page,String name,String price,int newtype){
+		Double p = Double.valueOf(StringUtils.isNullOrEmpty(price) ? "-1" : price);
+		String sql = "from t_course_web_order w left join t_course c on w.course_id = c.id left join t_course_offline o on o.course_id = c.id where w.`status` = 1 and c.course_name like ? and o.newtype = ?  and w.type >= 0 ";
+		if(p != -1){
+			sql += " and w.price >= " + p;
+		}
+		sql +=" order by w.id desc ";
+		return Db.paginate(page, Result.PAGE_COUNT, "select w.id,w.order_code as code,w.number,w.price,c.course_name,w.order_code,w.update_at,w.type,w.job,w.join_reason,w.buy_intentions ", sql,"%"+name+"%",newtype).getList();
+	}
+	
+	/**
+	 * @Title: findWebOrderCount 
+	 * @Description: (查询意见反馈总数) 
+	 * @return
+	 */
+	public Long findWebOrderCount(String name,String price,int newtype){
+		Double p = Double.valueOf(StringUtils.isNullOrEmpty(price) ? "-1" : price);
+		String sql = "select count(*) from t_course_web_order w left join t_course c on c.id = w.`course_id` left join t_course_offline o on o.course_id = c.id where w.`status` = 1 and c.`course_name` like ?  and o.newtype = ? ";
+		if(p != -1){
+			sql += " and w.price >= " + p;
+		}
+		return Db.queryLong(sql,"%"+name+"%",newtype);
+	}
+	
+	/**
+	 * @Title: findWebUserList 
+	 * @Description: (查询订单用户信息列表) 
+	 * @param page
+	 * @param courseId
+	 * @return
+	 */
+	public List<Record> findWebUserList(int page,Long orderId){
+		return Db.paginate(page, Result.PAGE_COUNT, "select member_id as memberId,name,mobile,weixin,content,sex,work", "from t_course_web_order_user where order_id = ? and status = 1 ",orderId).getList();
+	}
+	
+	public List<Record> findWebAllUserList(Long orderId){
+		return Db.find("select member_id as memberId,name,mobile,weixin,content,sex,work from t_course_web_order_user where order_id = ? and status = 1 ", orderId);
+//		return Db.paginate(page, Result.PAGE_COUNT, "select member_id as memberId,name,mobile,weixin,content,sex,work", "from t_course_web_order_user where order_id = ? and status = 1 ",orderId).getList();
+	}
+	/**
+	 * @Title: findWebUserCount 
+	 * @Description: (查询订单用户信息) 
+	 * @param courseId
+	 * @return
+	 */
+	public Long findWebUserCount(Long courseId){
+		return Db.queryLong("select count(*) from t_course_web_order_user where order_id = ? and status = 1",courseId);
+	}
+	
+	public List<Record> findWebOnlineCourseOrder(int page,String name){
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.code,o.price,o.course_id,e.course_name,o.weixin,o.update_at,o.at ", "from t_course_online_order o left join t_course e on e.id = o.course_id where o.status = 1 and e.course_name like ? order by o.create_at desc","%"+name+"%").getList();
+	}
+	
+	public Long findWebOnlineCourseOrderCount(String name){
+		return Db.queryLong("select count(*) from t_course_online_order o left join t_course_online_order_user u on u.order_id = o.id left join t_course e on e.id = o.course_id where o.status = 1 and e.course_name like ?","%"+name+"%");
+	}
+	//*********************************************************************************//
+	//******************************    以下为查询所有订单的接口        *****************************//
+	//*********************************************************************************//
+	/**
+	 * @Description: (查询所有课程订单总数) 
+	 * @return
+	 */
+	public Long findAllOrderCount(){
+		String sql = "select count(*) from v_order";
+		return Db.queryLong(sql);
+	}
+	/**
+	 * @Title: findAllOrder 
+	 * @Description: (查询全部订单列表) 
+	 * @param page
+	 * @return
+	 */
+	public List<Record> findAllOrder(int page){
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.id,o.course_name,o.CODE,o.price,o.province,o.city,o.create_at,o.name,o.mobile ", "from v_order o").getList();
+	}
+	
+	public Long findAllOrderCountByTime(String startTime,String endTime,String city){
+		String sql = "from v_order where 1=1";
+		if(!StringUtils.isNullOrEmpty(startTime)){
+			sql += " and create_at >= '" + startTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(endTime)){
+			sql += " and create_at <= '" + endTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(city)){
+			sql += " and city like '%" + city+"%'";
+		}
+		return Db.queryLong("select count(*) "+sql);
+	}
+	
+	/**
+	 * @Title: findAllOrder 
+	 * @Description: (查询全部订单列表) 
+	 * @param page
+	 * @return
+	 */
+	public List<Record> findAllOrderByTime(int page,String startTime,String endTime,String city){
+		String sql = "from v_order o where 1=1";
+		if(!StringUtils.isNullOrEmpty(startTime)){
+			sql += " and create_at >= '" + startTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(endTime)){
+			sql += " and create_at <= '" + endTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(city)){
+			sql += " and city like '%" + city+"%'";
+		}
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.id,o.course_name,o.CODE,o.price,o.province,o.city,o.create_at,o.name,o.mobile ", sql).getList();
+	}
+	
+	/**
+	 * @Description: (查询所有订单课程总数) 
+	 * @return
+	 */
+	public Long findAllOfficeCount(){
+		String sql = "SELECT count(a.zong) FROM (select count(*) as zong from v_order group by id) a ";
+		return Db.queryLong(sql);
+	}
+	/**
+	 * @Description: (查询所有订单课程总数) 
+	 * @return
+	 */
+	public Long findAllOfficeCount(String startTime,String endTime,String city){
+		String sql = "from v_order where 1=1";
+		if(!StringUtils.isNullOrEmpty(startTime)){
+			sql += " and create_at >= '" + startTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(endTime)){
+			sql += " and create_at <= '" + endTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(city)){
+			sql += " and city like '%" + city+"%'";
+		}
+		return Db.queryLong("SELECT count(a.zong) FROM (select count(*) as zong "+ sql +" group by id) as a");
+	}
+	/**
+	 * @return 
+	 * @Description: (查询所有订单总金额) 
+	 * @return
+	 */
+	public Double findAllMoneyCount(){
+		String sql = "select SUM(price) FROM v_order ";
+		return Db.queryBigDecimal(sql).doubleValue();
+	}
+	/**
+	 * @Description: (查询所有订单课程总金额) 
+	 * @return
+	 */
+//	public Double findAllMoneyCount(String startTime,String endTime,String city){
+//		Double result =  Db.queryBigDecimal("SELECT SUM(price) FROM v_order where create_at >= ? and create_at <= ? ",startTime,endTime).doubleValue();
+//		return result;
+//	}
+	//查询所有订单
+	public List<Record> findAllOrders(){
+		return Db.find("select o.id,o.city,o.province,o.mobile from t_course_web_order_user o");
+	}
+	/**
+	 * @Description: (查询所有订单课程总金额) 
+	 * @return
+	 */
+	public Double findAllMoneyCount(String startTime,String endTime,String city){
+		String sql = "from v_order where 1=1";
+		if(!StringUtils.isNullOrEmpty(startTime)){
+			sql += " and create_at >= '" + startTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(endTime)){
+			sql += " and create_at <= '" + endTime+"'";
+		}
+		if(!StringUtils.isNullOrEmpty(city)){
+			sql += " and city like '%" + city+"%'";
+		}
+		Double result =  Db.queryBigDecimal("SELECT SUM(price) "+sql).doubleValue();
+		return result;
+	}
+	//更新订单
+	public void update(Record record){
+		Db.update("t_course_web_order_user", record);
+	}
+	
+	 /**
+     * @param urlAll
+     *            :请求接口
+     * @param httpArg
+     *            :参数
+     * @return 返回结果
+     */
+    public static String request( String mobileNumber) {
+    	String httpUrl = "http://apis.baidu.com/apistore/mobilenumber/mobilenumber";
+        BufferedReader reader = null;
+        String result = null;
+        StringBuffer sbf = new StringBuffer();
+        httpUrl = httpUrl + "?phone=" +mobileNumber ;
+
+        try {
+            URL url = new URL(httpUrl);
+            HttpURLConnection connection = (HttpURLConnection) url
+                    .openConnection();
+            connection.setRequestMethod("GET");
+            // 填入apikey到HTTP header
+            connection.setRequestProperty("apikey",  "39e7dd9a339a9265683e25d070693ca5");
+            connection.connect();
+            InputStream is = connection.getInputStream();
+            reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            String strRead = null;
+            while ((strRead = reader.readLine()) != null) {
+                sbf.append(strRead);
+                sbf.append("\r\n");
+            }
+            reader.close();
+            result = sbf.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////               报表部分                                                                 //////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public List<Record> findMonthList(){
+    	return Db.find("select a.yue from (SELECT date_format(create_at, '%Y') AS nian,date_format(create_at, '%m') AS yue	FROM v_order WHERE date_format(create_at, '%Y') = '2016' GROUP BY nian,yue) as a");
+    }
+    
+    public List<Record> findPriceByMonth(){
+    	return Db.find("SELECT SUM(a.zong) FROM (SELECT date_format(create_at, '%Y') AS nian,date_format(create_at, '%m') AS yue,course_name,SUM(price) AS zong FROM v_order GROUP BY nian,yue) as a WHERE a.nian='2016' GROUP BY a.nian,a.yue");
+    }
+    
+    public List<Record> findOrdersByMonth(){
+    	return Db.find("SELECT COUNT(a.yue) FROM (SELECT date_format(create_at, '%Y') AS nian,date_format(create_at, '%m') AS yue,course_name FROM v_order WHERE date_format(create_at, '%Y') = '2016') as a GROUP BY a.nian,a.yue");
+    }
+    //复购率报表
+    public List findComplexCCList(){
+    	return Db.query("SELECT COUNT(a.cou) as cc FROM v_complexRate as a GROUP BY a.cou order by a.cou desc");
+    }
+    public List findComplexCouList(){
+    	return Db.query("select a.cou from v_complexRate as a GROUP BY a.cou order by a.cou desc");
+    }
+    public Long findComplexCou(){
+    	return Db.queryLong("select count(*) from v_complexRate as a where a.cou >1 ");
+    }
+    public Long findComplex(){
+    	return Db.queryLong("select count(*) from v_complexRate as a ");
+    }
+    //订单金额月报表
+    //查询月份、年份集合
+    public List findOrderNianList(){
+    	return Db.query("SELECT b.nian FROM v_orderAmount AS b GROUP BY b.nian,b.yue ORDER BY b.nian,b.yue asc");
+    }
+    public List findOrderMonthList(){
+    	return Db.query("SELECT b.yue FROM v_orderAmount AS b GROUP BY b.nian,b.yue ORDER BY b.nian,b.yue asc");
+    }
+    public List findOrderZongList(){
+    	return Db.query("SELECT SUM(b.price) AS zong FROM v_orderAmount AS b GROUP BY b.nian,b.yue ORDER BY b.nian,b.yue asc");
+    }
+}

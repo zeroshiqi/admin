@@ -1,0 +1,132 @@
+package cn.ichazuo.controller;
+
+import java.util.List;
+
+import com.jfinal.aop.Duang;
+import com.jfinal.plugin.activerecord.Record;
+
+import cn.ichazuo.common.base.BaseController;
+import cn.ichazuo.common.utils.DateUtils;
+import cn.ichazuo.common.utils.NumberUtils;
+import cn.ichazuo.common.utils.StringUtils;
+import cn.ichazuo.common.utils.Upload;
+import cn.ichazuo.common.utils.model.Page;
+import cn.ichazuo.service.TeacherService;
+
+public class TeacherController extends BaseController {
+
+	private TeacherService service = Duang.duang(TeacherService.class);
+
+	public void index() {
+		int page = getParaToInt("page", 1);
+		long count = service.findTeacherCount();
+		List<Record> list = service.findTeacherList(page);
+		list.forEach(info -> {
+			info.set("avatar", appenUrl(info.getStr("avatar")));
+		});
+		setAttr("list", list);
+		setAttr("page", new Page(page, count, "/admin/teacher?s=1"));
+		render("teachers.jsp");
+	}
+
+	public void save() {
+		try {
+			boolean isHave = false;
+			try {
+				isHave = getFile("imglive") != null;
+			} catch (Exception e) {
+				isHave = false;
+			}
+			int type = getParaToInt("type", 0);
+			if (type == 0) {
+				renderJson(error("参数错误!"));
+				return;
+			}
+
+			if (StringUtils.isNullOrEmpty(getPara("name"), getPara("title"),getPara("info"),getPara("price"))) {
+				renderJson(error("参数错误!"));
+				return;
+			}
+
+			Long id = getParaToLong("id", 0L);
+			if (NumberUtils.isNullOrZero(id)) {
+				if (!isHave) {
+					renderJson(error("请选择图片"));
+					return;
+				}
+				Record record = new Record();
+				record.set("name", getPara("name"));
+				record.set("title", getPara("title"));
+				record.set("type", type);
+				record.set("price", Double.parseDouble(getPara("price")));
+				record.set("info", getPara("info"));
+				String path = new Upload().upload(getFile("imglive"), "avatar");
+				record.set("avatar", path);
+				record.set("create_at", DateUtils.getNowDate());
+				record.set("content", getPara("content"));
+				record.set("job", getPara("job"));
+				record.set("weight", getPara("weight"));
+				record.set("status", 1);
+				
+				service.saveTeacher(record);
+			} else {
+				Record record = service.findTeacherById(id);
+				if (isHave) {
+					String path = new Upload().upload(getFile("imglive"), "avatar");
+					record.set("avatar", path);
+				}
+				record.set("name", getPara("name"));
+				record.set("title", getPara("title"));
+				record.set("type", type);
+				record.set("price", Double.parseDouble(getPara("price")));
+				record.set("info", getPara("info"));
+				record.set("content", getPara("content"));
+				record.set("update_at", DateUtils.getNowDate());
+				record.set("version", record.getLong("version") + 1);
+
+				service.updateTeacher(record);
+			}
+			renderJson(ok());
+		} catch (Exception e) {
+			e.printStackTrace();
+			renderJson(error("系统错误"));
+		}
+	}
+
+	
+	public void edit() {
+		Long id = getParaToLong("id", 0L);
+		if (!NumberUtils.isNullOrZero(id)) {
+			Record record = service.findTeacherById(id);
+			record.set("avatar", appenUrl(record.getStr("avatar")));
+			setAttr("record", record);
+		}
+		render("teacher.jsp");
+	}
+
+	public void delete() {
+		Long id = getParaToLong("id", 0L);
+		if (NumberUtils.isNullOrZero(id)) {
+			renderJson(error("参数错误"));
+			return;
+		}
+		try {
+			service.deleteTeacher(id);
+			renderJson(ok());
+		} catch (Exception e) {
+			e.printStackTrace();
+			renderJson(error("系统异常"));
+		}
+	}
+
+	public void invite() {
+		int page = getParaToInt("page", 1);
+		long count = service.findTeacherInviteCount();
+		List<Record> list = service.findTeacherInvite(page);
+		setAttr("list", list);
+		setAttr("page", new Page(page, count, "/admin/teacher/invite?s=1"));
+		render("teachers.jsp");
+
+		render("invite.jsp");
+	}
+}

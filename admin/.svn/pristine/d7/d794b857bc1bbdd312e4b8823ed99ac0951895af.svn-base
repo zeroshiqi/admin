@@ -1,0 +1,109 @@
+package cn.ichazuo.service;
+
+import java.util.List;
+
+import com.jfinal.aop.Before;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+
+import cn.ichazuo.common.Result;
+import cn.ichazuo.model.ArticleComment;
+import cn.ichazuo.model.CourseOfflineComment;
+
+/**
+ * @ClassName: CommentService 
+ * @Description: (评论Service) 
+ * @author ZhaoXu
+ * @date 2015年8月7日 上午10:30:28 
+ * @version V1.0
+ */
+public class CommentService {
+	
+	/**
+	 * @Title: findArticleCommentById 
+	 * @Description: (查询文章评论) 
+	 * @param id
+	 * @return
+	 */
+	public ArticleComment findArticleCommentById(Long id){
+		return ArticleComment.dao.findById(id);
+	}
+	
+	@Before(Tx.class)
+	public ArticleComment updateArticleComment(ArticleComment comment) throws Exception{
+		if(comment.update()){
+			return comment;
+		}else{
+			throw new Exception();
+		}
+	}
+	
+	/**
+	 * @Title: findArticleCommentList 
+	 * @Description: (查询文章评论列表) 
+	 * @param page
+	 * @param articleId
+	 * @return
+	 */
+	public List<Record> findArticleCommentList(int page,Long articleId){
+		return Db.paginate(page, Result.PAGE_COUNT, "select t.*,m.nick_name ", "from t_article_comment t left join t_member m on m.id = t.member_id where t.`status` = 1 and article_id = ?",articleId).getList();
+	}
+	
+	/**
+	 * @Title: findArticleCommentCount 
+	 * @Description: (查询文章评论总数) 
+	 * @param articleId
+	 * @return
+	 */
+	public Long findArticleCommentCount(Long articleId){
+		return Db.queryLong("select count(*) from t_article_comment where status = 1 and article_id = ?", articleId); 
+	}
+	
+	/**
+	 * @Title: findCourseOfflineComment 
+	 * @Description: (查询线下课程评论) 
+	 * @param page
+	 * @param courseId
+	 * @return
+	 */
+	public List<CourseOfflineComment> findCourseOfflineCommentList(int page,Long courseId){
+		return CourseOfflineComment.dao.paginate(page, Result.PAGE_COUNT, "select t.*,m.nick_name ", " from t_course_offline_comment t left join t_member m on m.id = t.member_id where t.status = 1 and t.course_id = ? ",courseId).getList();
+	}
+	
+	/**
+	 * @Title: findCourseOfflineCommentCount 
+	 * @Description: (查询线下课程评论总数) 
+	 * @param courseId
+	 * @return
+	 */
+	public Long findCourseOfflineCommentCount(Long courseId){
+		return Db.queryLong("select count(*) from t_course_offline_comment where status = 1 and course_id = ? ", courseId);
+	}
+	
+	/**
+	 * @Title: findCourseOfflineCommentById 
+	 * @Description: (根据ID查询线下课程评论) 
+	 * @param id
+	 * @return
+	 */
+	public CourseOfflineComment findCourseOfflineCommentById(Long id){
+		return CourseOfflineComment.dao.findById(id);
+	}
+	
+	/**
+	 * @Title: updateCourseOfflineComment 
+	 * @Description: (修改线下课程评论) 
+	 * @param comment
+	 * @return
+	 * @throws Exception
+	 */
+	@Before(Tx.class)
+	public CourseOfflineComment updateCourseOfflineComment(CourseOfflineComment comment) throws Exception{
+		if(comment.update()){
+			return comment;
+		}else{
+			throw new Exception();
+		}
+	}
+}

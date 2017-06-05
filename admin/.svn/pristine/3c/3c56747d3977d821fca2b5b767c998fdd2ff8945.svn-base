@@ -1,0 +1,64 @@
+package cn.ichazuo.service;
+
+import java.util.List;
+
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+
+import cn.ichazuo.common.Result;
+import cn.ichazuo.common.utils.StringUtils;
+import cn.ichazuo.model.Member;
+
+public class TicketService {
+	
+	
+	public Long findCount(Long score,String topParentName,String parentName){
+		String sql = "select count(*) from t_ticket o inner join t_question_second_type c on c.id = o.parent_id join t_question_first_type d on c.parent_id = d.id where o.`status` = 1 and c.`status` = 1 and last_time is null";
+		if(score != 0){
+			sql +=" and score >="+score;
+		}
+		if(topParentName!=null && !"".equals(topParentName) && !"null".equals(topParentName)&& topParentName!="null"){
+			sql+=" and d.title like '%"+topParentName+"%'";
+		}
+		if(parentName!=null && !"".equals(parentName) && !"null".equals(parentName)&& parentName!="null"){
+			sql+=" and c.title like '%"+parentName+"%'";
+		}
+		return Db.queryLong(sql);
+	}
+	//根据一级目录Id查询参考成绩单总数
+	public Long findCountByTopParentId(Long topId){
+		return Db.queryLong("select count(*) from t_ticket o inner join t_question_second_type c on c.id = o.parent_id join t_question_first_type d on c.parent_id = d.id where o.`status` = 1 and c.`status` = 1 and o.last_time is null and o.top_parent_id= ?",topId);
+	}
+	//根据二级目录Id查询参考成绩单总数
+	public Long findCountByParentId(Long parentId){
+		return Db.queryLong("select count(*) from t_ticket o inner join t_question_second_type c on c.id = o.parent_id join t_question_first_type d on c.parent_id = d.id where o.`status` = 1 and c.`status` = 1 and o.last_time is null and o.parent_id= ? ",parentId);
+	}
+	
+//	public List<Record> findList(int page){
+//		return Db.paginate(page, Result.PAGE_COUNT, "select status,id,nick_name,price,level,score", "from t_ticket where last_time is null").getList();
+//	}
+	
+	public List<Record> findList(int page,Long score,String parentName,String topParentName){
+		String sql="from t_ticket o inner join t_question_second_type c on c.id = o.parent_id join t_question_first_type d on c.parent_id = d.id where o.`status` = 1 and c.`status` = 1 and last_time is null";
+		if(score != 0){
+			sql +=" and score >= "+score;
+		}
+		if(parentName!=null && !"".equals(parentName) && !"null".equals(parentName)&& parentName!="null"){
+			sql+=" and c.title like '%"+parentName+"%'";
+		}
+		if(topParentName!=null && !"".equals(topParentName) && !"null".equals(topParentName)&& topParentName!="null"){
+			sql+=" and d.title like '%"+topParentName+"%'";
+		}
+		sql +=" order by score desc";
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.status, o.id,o.nick_name,o.price,o.level,o.score,c.title as typetwo,d.title as typeone", sql).getList();
+
+	}
+	//根据一级目录Id查询参考成绩单
+	public List<Record> findListByTopParentId(int page,Long topId){
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.status, o.id,o.nick_name,o.price,o.level,o.score,c.title as typetwo,d.title as typeone", "from t_ticket o inner join t_question_second_type c on c.id = o.parent_id join t_question_first_type d on c.parent_id = d.id where o.`status` = 1 and c.`status` = 1 and o.last_time is null and top_parent_id = ? order by o.score desc",topId).getList();
+	}
+	//根据二级目录Id查询参考成绩单
+	public List<Record> findListByParentId(int page,Long parentId){
+		return Db.paginate(page, Result.PAGE_COUNT, "select o.status, o.id,o.nick_name,o.price,o.level,o.score,c.title as typetwo,d.title as typeone", "from t_ticket o inner join t_question_second_type c on c.id = o.parent_id join t_question_first_type d on c.parent_id = d.id where o.`status` = 1 and c.`status` = 1 and o.last_time is null and o.parent_id = ? order by o.score desc",parentId).getList();
+	}
+}
